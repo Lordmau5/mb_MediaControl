@@ -13,6 +13,7 @@ namespace MusicBeePlugin
     {
         private MusicBeeApiInterface mbApiInterface;
         private readonly PluginInfo about = new PluginInfo();
+        private MediaPlayer mediaPlayer;
         private SystemMediaTransportControls systemMediaControls;
         private SystemMediaTransportControlsDisplayUpdater displayUpdater;
         private MusicDisplayProperties musicProperties;
@@ -37,12 +38,12 @@ namespace MusicBeePlugin
             about.PluginInfoVersion = PluginInfoVersion;
             about.Name = "Media Control";
             about.Description = "Enables MusicBee to interact with the Windows 10/11 Media Control overlay.";
-            about.Author = "Steven Mayall";
+            about.Author = "Steven Mayall, UrbanCMC";
             about.TargetApplication = "";   //  the name of a Plugin Storage device or panel header for a dockable panel
             about.Type = PluginType.General;
             about.VersionMajor = 1;  // your plugin version
-            about.VersionMinor = 0;
-            about.Revision = 4;
+            about.VersionMinor = 1;
+            about.Revision = 0;
             about.MinInterfaceVersion = MinInterfaceVersion;
             about.MinApiRevision = MinApiRevision;
             about.ReceiveNotifications = (ReceiveNotificationFlags.PlayerEvents | ReceiveNotificationFlags.TagEvents);
@@ -174,7 +175,10 @@ namespace MusicBeePlugin
             switch (type)
             {
                 case NotificationType.PluginStartup:
-                    systemMediaControls = BackgroundMediaPlayer.Current.SystemMediaTransportControls;
+                    mediaPlayer = new MediaPlayer();
+                    systemMediaControls = mediaPlayer.SystemMediaTransportControls;
+                    mediaPlayer.CommandManager.IsEnabled = false; // Disable automatic integration into MediaPlayer to control SMTC manually
+
                     systemMediaControls.PlaybackStatus = MediaPlaybackStatus.Closed;
                     systemMediaControls.IsEnabled = true;
                     systemMediaControls.IsPlayEnabled = true;
