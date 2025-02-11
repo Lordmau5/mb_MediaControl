@@ -1,18 +1,11 @@
 ﻿using System;
-using System.Threading;
-using System.Runtime.InteropServices;
-using System.Collections.Generic;
 using Windows.Media;
-using Windows.Media.Core;
 using Windows.Media.Playback;
-using Windows.Storage;
 using Windows.Storage.Streams;
-using static System.IO.WindowsRuntimeStreamExtensions;
 using System.IO;
 using System.Runtime.InteropServices.WindowsRuntime;
 using Gma.System.MouseKeyHook;
 using System.Windows.Forms;
-using Windows.Media.Control;
 
 namespace MusicBeePlugin
 {
@@ -93,11 +86,17 @@ namespace MusicBeePlugin
                     {
                         case PlayState.Playing:
                             if (pause)
+                            {
                                 mbApiInterface.Player_PlayPause();
+                            }
+
                             break;
                         case PlayState.Paused:
                             if (!pause)
+                            {
                                 mbApiInterface.Player_PlayPause();
+                            }
+
                             break;
                         case PlayState.Stopped:
                         case PlayState.Loading:
@@ -120,7 +119,10 @@ namespace MusicBeePlugin
             try
             {
                 if (DateTime.Now.Subtract(lastStopKeyPress).TotalMilliseconds > mediaKeysInvalidateBeforeMs)
+                {
                     mbApiInterface.Player_Stop();
+                }
+
                 SetPlayerState();
             }
             finally
@@ -135,7 +137,10 @@ namespace MusicBeePlugin
             try
             {
                 if (DateTime.Now.Subtract(lastPreviousTrackKeyPress).TotalMilliseconds > mediaKeysInvalidateBeforeMs)
+                {
                     mbApiInterface.Player_PlayPreviousTrack();
+                }
+
                 SetDisplayValues();
             }
             finally
@@ -150,7 +155,10 @@ namespace MusicBeePlugin
             try
             {
                 if (DateTime.Now.Subtract(lastNextTrackKeyPress).TotalMilliseconds > mediaKeysInvalidateBeforeMs)
+                {
                     mbApiInterface.Player_PlayNextTrack();
+                }
+
                 SetDisplayValues();
             }
             finally
@@ -190,23 +198,29 @@ namespace MusicBeePlugin
                     break;
                 case NotificationType.PlayStateChanged:
                     if (!trackChangeListenerDisabled)
+                    {
                         SetPlayerState();
+                    }
                     break;
                 case NotificationType.TrackChanged:
                     if (!trackChangeListenerDisabled)
+                    {
                         SetDisplayValues();
+                    }
                     break;
                 case NotificationType.PlayerShuffleChanged:
                     if (!trackChangeListenerDisabled)
+                    {
                         SetShuffleState();
+                    }
                     break;
                 case NotificationType.PlayerRepeatChanged:
                     if (!trackChangeListenerDisabled)
+                    {
                         SetRepeatState();
+                    }
                     break;
             }
-
-
         }
 
         private void SystemMediaControls_ButtonPressed(SystemMediaTransportControls smtc, SystemMediaTransportControlsButtonPressedEventArgs args)
@@ -244,7 +258,6 @@ namespace MusicBeePlugin
         private void SystemMediaControls_PlaybackPositionChangeRequested(SystemMediaTransportControls smtc, PlaybackPositionChangeRequestedEventArgs args)
         {
             mbApiInterface.Player_SetPosition((int)args.RequestedPlaybackPosition.TotalMilliseconds);
-
         }
 
         private void SystemMediaControls_PlaybackRateChangeRequested(SystemMediaTransportControls smtc, PlaybackRateChangeRequestedEventArgs args)
@@ -270,7 +283,6 @@ namespace MusicBeePlugin
         private void SystemMediaControls_ShuffleEnabledChangeRequested(SystemMediaTransportControls smtc, ShuffleEnabledChangeRequestedEventArgs args)
         {
             mbApiInterface.Player_SetShuffle(args.RequestedShuffleEnabled);
-
         }
 
         private void SetDisplayValues()
@@ -284,13 +296,22 @@ namespace MusicBeePlugin
                 musicProperties.AlbumArtist = mbApiInterface.NowPlaying_GetFileTag(MetaDataType.AlbumArtist);
                 musicProperties.AlbumTitle = mbApiInterface.NowPlaying_GetFileTag(MetaDataType.Album);
                 if (uint.TryParse(mbApiInterface.NowPlaying_GetFileTag(MetaDataType.TrackCount), out var value))
+                {
                     musicProperties.AlbumTrackCount = value;
+                }
+
                 musicProperties.Artist = mbApiInterface.NowPlaying_GetFileTag(MetaDataType.Artist);
                 musicProperties.Title = mbApiInterface.NowPlaying_GetFileTag(MetaDataType.TrackTitle);
                 if (string.IsNullOrEmpty(musicProperties.Title))
-                    musicProperties.Title = url.Substring(url.LastIndexOfAny(new char[] { '/', '\\' }) + 1);
+                {
+                    musicProperties.Title = url.Substring(url.LastIndexOfAny(new[] { '/', '\\' }) + 1);
+                }
+
                 if (uint.TryParse(mbApiInterface.NowPlaying_GetFileTag(MetaDataType.TrackNo), out value))
+                {
                     musicProperties.TrackNumber = value;
+                }
+
                 //musicProperties.Genres = mbApiInterface.NowPlaying_GetFileTag(MetaDataType.Genres).Split(new string[] {"; "}, StringSplitOptions.RemoveEmptyEntries);
                 mbApiInterface.Library_GetArtworkEx(url, 0, true, out _, out _, out var imageData);
                 SetArtworkThumbnail(imageData);
@@ -353,8 +374,7 @@ namespace MusicBeePlugin
 
         private async void SetArtworkThumbnail(byte[] data)
         {
-            if (artworkStream != null)
-                artworkStream.Dispose();
+            artworkStream?.Dispose();
             if (data == null)
             {
                 artworkStream = null;
@@ -398,11 +418,7 @@ namespace MusicBeePlugin
                 case Keys.MediaNextTrack:
                     lastNextTrackKeyPress = DateTime.Now;
                     break;
-                default:
-                    break;
             }
         }
-
     }
-
 }
