@@ -6,6 +6,8 @@ using System.IO;
 using System.Runtime.InteropServices.WindowsRuntime;
 using Gma.System.MouseKeyHook;
 using System.Windows.Forms;
+using MusicBeePlugin.Extensions;
+using MusicBeePlugin.Forms;
 
 namespace MusicBeePlugin
 {
@@ -27,6 +29,7 @@ namespace MusicBeePlugin
         private DateTime lastPreviousTrackKeyPress;
         private DateTime lastNextTrackKeyPress;
 
+        private Settings settings;
         private bool trackChangeListenerDisabled = false;
         private System.Threading.Timer timer;
 
@@ -48,18 +51,24 @@ namespace MusicBeePlugin
             about.MinApiRevision = MinApiRevision;
             about.ReceiveNotifications = (ReceiveNotificationFlags.PlayerEvents | ReceiveNotificationFlags.TagEvents);
             about.ConfigurationPanelHeight = 0;   // height in pixels that musicbee should reserve in a panel for config settings. When set, a handle to an empty panel will be passed to the Configure function
+
+            settings = Settings.GetInstance(Path.Combine(mbApiInterface.Setting_GetPersistentStoragePath(), about.Name, "Settings.settings"));
+
             return about;
         }
 
         public bool Configure(IntPtr panelHandle)
         {
-            return false;
+            var settingsWindow = new SettingsForm(mbApiInterface, settings);
+            settingsWindow.Show();
+            return true;
         }
 
         // called by MusicBee when the user clicks Apply or Save in the MusicBee Preferences screen.
         // its up to you to figure out whether anything has changed and needs updating
         public void SaveSettings()
         {
+            settings.Save();
         }
 
         // MusicBee is closing the plugin (plugin is being disabled by user or MusicBee is shutting down)
@@ -73,6 +82,7 @@ namespace MusicBeePlugin
         // uninstall this plugin - clean up any persisted files
         public void Uninstall()
         {
+            settings.Delete();
         }
 
         private void MediaControl_PlayPauseButtonPress(bool pause)
@@ -298,14 +308,14 @@ namespace MusicBeePlugin
             if (url != null)
             {
                 musicProperties.AlbumArtist = mbApiInterface.NowPlaying_GetFileTag(MetaDataType.AlbumArtist);
-                musicProperties.AlbumTitle = mbApiInterface.NowPlaying_GetFileTag(MetaDataType.Album);
+                musicProperties.AlbumTitle = mbApiInterface.GetFormattedString(settings.AlbumFormat);
                 if (uint.TryParse(mbApiInterface.NowPlaying_GetFileTag(MetaDataType.TrackCount), out var value))
                 {
                     musicProperties.AlbumTrackCount = value;
                 }
 
-                musicProperties.Artist = mbApiInterface.NowPlaying_GetFileTag(MetaDataType.Artist);
-                musicProperties.Title = mbApiInterface.NowPlaying_GetFileTag(MetaDataType.TrackTitle);
+                musicProperties.Artist = mbApiInterface.GetFormattedString(settings.ArtistFormat);
+                musicProperties.Title = mbApiInterface.GetFormattedString(settings.TrackFormat);
                 if (string.IsNullOrEmpty(musicProperties.Title))
                 {
                     musicProperties.Title = url.Substring(url.LastIndexOfAny(new[] { '/', '\\' }) + 1);
@@ -316,7 +326,6 @@ namespace MusicBeePlugin
                     musicProperties.TrackNumber = value;
                 }
 
-                //musicProperties.Genres = mbApiInterface.NowPlaying_GetFileTag(MetaDataType.Genres).Split(new string[] {"; "}, StringSplitOptions.RemoveEmptyEntries);
                 mbApiInterface.Library_GetArtworkEx(url, 0, true, out _, out _, out var imageData);
                 SetArtworkThumbnail(imageData);
             }
