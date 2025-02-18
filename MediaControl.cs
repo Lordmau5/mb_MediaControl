@@ -4,8 +4,6 @@ using Windows.Media.Playback;
 using Windows.Storage.Streams;
 using System.IO;
 using System.Runtime.InteropServices.WindowsRuntime;
-using Gma.System.MouseKeyHook;
-using System.Windows.Forms;
 using MusicBeePlugin.Extensions;
 using MusicBeePlugin.Forms;
 
@@ -21,21 +19,12 @@ namespace MusicBeePlugin
         private MusicDisplayProperties musicProperties;
         private InMemoryRandomAccessStream artworkStream;
 
-        private IKeyboardMouseEvents globalHook;
-        // Disable this...
-        private int mediaKeysInvalidateBeforeMs = 0; // media control buttons won't trigger for 2000 ms after media button is pressed
-        private DateTime lastPlayPauseKeyPress;
-        private DateTime lastStopKeyPress;
-        private DateTime lastPreviousTrackKeyPress;
-        private DateTime lastNextTrackKeyPress;
-
         private Settings settings;
-        private bool trackChangeListenerDisabled = false;
+        private bool trackChangeListenerDisabled;
         private System.Threading.Timer timer;
 
         public PluginInfo Initialise(IntPtr apiInterfacePtr)
         {
-            SubscribeGlobalHooks();
             mbApiInterface = new MusicBeeApiInterface();
             mbApiInterface.Initialise(apiInterfacePtr);
             about.PluginInfoVersion = PluginInfoVersion;
@@ -74,7 +63,6 @@ namespace MusicBeePlugin
         // MusicBee is closing the plugin (plugin is being disabled by user or MusicBee is shutting down)
         public void Close(PluginCloseReason reason)
         {
-            UnsubscribeGlobalHooks();
             SetArtworkThumbnail(null);
             timer.Dispose();
         }
@@ -90,32 +78,30 @@ namespace MusicBeePlugin
             trackChangeListenerDisabled = true;
             try
             {
-                if (DateTime.Now.Subtract(lastPlayPauseKeyPress).TotalMilliseconds > mediaKeysInvalidateBeforeMs)
+                var state = mbApiInterface.Player_GetPlayState();
+                switch (state)
                 {
-                    var state = mbApiInterface.Player_GetPlayState();
-                    switch (state)
-                    {
-                        case PlayState.Playing:
-                            if (pause)
-                            {
-                                mbApiInterface.Player_PlayPause();
-                            }
+                    case PlayState.Playing:
+                        if (pause)
+                        {
+                            mbApiInterface.Player_PlayPause();
+                        }
 
-                            break;
-                        case PlayState.Paused:
-                            if (!pause)
-                            {
-                                mbApiInterface.Player_PlayPause();
-                            }
+                        break;
+                    case PlayState.Paused:
+                        if (!pause)
+                        {
+                            mbApiInterface.Player_PlayPause();
+                        }
 
-                            break;
-                        case PlayState.Stopped:
-                        case PlayState.Loading:
-                        case PlayState.Undefined:
-                        default:
-                            break; // Ignored
-                    }
+                        break;
+                    case PlayState.Stopped:
+                    case PlayState.Loading:
+                    case PlayState.Undefined:
+                    default:
+                        break; // Ignored
                 }
+
                 SetPlayerState();
             }
             finally
@@ -129,11 +115,7 @@ namespace MusicBeePlugin
             trackChangeListenerDisabled = true;
             try
             {
-                if (DateTime.Now.Subtract(lastStopKeyPress).TotalMilliseconds > mediaKeysInvalidateBeforeMs)
-                {
-                    mbApiInterface.Player_Stop();
-                }
-
+                mbApiInterface.Player_Stop();
                 SetPlayerState();
             }
             finally
@@ -147,11 +129,7 @@ namespace MusicBeePlugin
             trackChangeListenerDisabled = true;
             try
             {
-                if (DateTime.Now.Subtract(lastPreviousTrackKeyPress).TotalMilliseconds > mediaKeysInvalidateBeforeMs)
-                {
-                    mbApiInterface.Player_PlayPreviousTrack();
-                }
-
+                mbApiInterface.Player_PlayPreviousTrack();
                 SetDisplayValues();
             }
             finally
@@ -165,11 +143,7 @@ namespace MusicBeePlugin
             trackChangeListenerDisabled = true;
             try
             {
-                if (DateTime.Now.Subtract(lastNextTrackKeyPress).TotalMilliseconds > mediaKeysInvalidateBeforeMs)
-                {
-                    mbApiInterface.Player_PlayNextTrack();
-                }
-
+                mbApiInterface.Player_PlayNextTrack();
                 SetDisplayValues();
             }
             finally
@@ -400,37 +374,6 @@ namespace MusicBeePlugin
                 artworkStream = new InMemoryRandomAccessStream();
                 await artworkStream.WriteAsync(data.AsBuffer());
                 displayUpdater.Thumbnail = RandomAccessStreamReference.CreateFromStream(artworkStream);
-            }
-        }
-
-        private void SubscribeGlobalHooks()
-        {
-            globalHook = Hook.GlobalEvents();
-            globalHook.KeyPress += GlobalHook_KeyPress;
-        }
-
-        private void UnsubscribeGlobalHooks()
-        {
-            globalHook.KeyPress -= GlobalHook_KeyPress;
-            globalHook.Dispose();
-        }
-
-        private void GlobalHook_KeyPress(object sender, KeyPressEventArgs e)
-        {
-            switch ((Keys)e.KeyChar)
-            {
-                case Keys.MediaPlayPause:
-                    lastPlayPauseKeyPress = DateTime.Now;
-                    break;
-                case Keys.MediaStop:
-                    lastStopKeyPress = DateTime.Now;
-                    break;
-                case Keys.MediaPreviousTrack:
-                    lastPreviousTrackKeyPress = DateTime.Now;
-                    break;
-                case Keys.MediaNextTrack:
-                    lastNextTrackKeyPress = DateTime.Now;
-                    break;
             }
         }
     }
