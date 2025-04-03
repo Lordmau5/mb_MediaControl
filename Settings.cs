@@ -29,7 +29,7 @@ namespace MusicBeePlugin
         private string trackFormat;
 
         [DataMember]
-        private bool hookGlobalHotkeys;
+        private bool hookGlobalHotkeys = true;
 
         public string AlbumFormat
         {
