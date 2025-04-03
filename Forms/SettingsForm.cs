@@ -37,6 +37,7 @@ namespace MusicBeePlugin.Forms
             txtAlbumFormat.Text = settings.AlbumFormat;
             txtArtistFormat.Text = settings.ArtistFormat;
             txtTrackFormat.Text = settings.TrackFormat;
+            checkBoxHookGlobalHotkeys.Checked = settings.HookGlobalHotkeys;
         }
 
         private string GetFormattedPreview(string input)
@@ -84,6 +85,11 @@ namespace MusicBeePlugin.Forms
         private void OnFormatTextChanged(object sender, EventArgs e)
         {
             UpdatePreview();
+        }
+
+        private void checkBoxHookGlobalHotkeys_CheckedChanged(object sender, EventArgs e)
+        {
+            settings.HookGlobalHotkeys = checkBoxHookGlobalHotkeys.Checked;
         }
     }
 }

@@ -28,6 +28,9 @@ namespace MusicBeePlugin
         [DataMember]
         private string trackFormat;
 
+        [DataMember]
+        private bool hookGlobalHotkeys;
+
         public string AlbumFormat
         {
             get => albumFormat ?? defaults[nameof(AlbumFormat)];
@@ -44,6 +47,12 @@ namespace MusicBeePlugin
         {
             get => trackFormat ?? defaults[nameof(TrackFormat)];
             set => SetIfChanged(ref trackFormat, value);
+        }
+
+        public bool HookGlobalHotkeys
+        {
+            get => hookGlobalHotkeys;
+            set => SetIfChanged(ref hookGlobalHotkeys, value);
         }
 
         public bool IsDirty { get; private set; }

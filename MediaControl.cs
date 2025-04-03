@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Windows.Media;
 using Windows.Media.Playback;
 using Windows.Storage.Streams;
@@ -213,6 +213,11 @@ namespace MusicBeePlugin
 
         private void SystemMediaControls_ButtonPressed(SystemMediaTransportControls smtc, SystemMediaTransportControlsButtonPressedEventArgs args)
         {
+            if (!settings.HookGlobalHotkeys)
+            {
+                return;
+            }
+
             switch (args.Button)
             {
                 case SystemMediaTransportControlsButton.Stop:

@@ -45,6 +45,7 @@ namespace MusicBeePlugin.Forms
             this.lblArtistPreview = new System.Windows.Forms.Label();
             this.lblTrackPreview = new System.Windows.Forms.Label();
             this.btnInfo = new System.Windows.Forms.Button();
+            this.checkBoxHookGlobalHotkeys = new System.Windows.Forms.CheckBox();
             this.SuspendLayout();
             // 
             // lblAlbumFormat
@@ -155,11 +156,23 @@ namespace MusicBeePlugin.Forms
             this.btnInfo.UseVisualStyleBackColor = true;
             this.btnInfo.Click += new System.EventHandler(this.btnInfo_Click);
             // 
+            // checkBoxHookGlobalHotkeys
+            // 
+            this.checkBoxHookGlobalHotkeys.AutoSize = true;
+            this.checkBoxHookGlobalHotkeys.Location = new System.Drawing.Point(15, 135);
+            this.checkBoxHookGlobalHotkeys.Name = "checkBoxHookGlobalHotkeys";
+            this.checkBoxHookGlobalHotkeys.Size = new System.Drawing.Size(127, 17);
+            this.checkBoxHookGlobalHotkeys.TabIndex = 12;
+            this.checkBoxHookGlobalHotkeys.Text = "Hook Global Hotkeys";
+            this.checkBoxHookGlobalHotkeys.UseVisualStyleBackColor = true;
+            this.checkBoxHookGlobalHotkeys.CheckedChanged += new System.EventHandler(this.checkBoxHookGlobalHotkeys_CheckedChanged);
+            // 
             // SettingsForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(384, 141);
+            this.ClientSize = new System.Drawing.Size(384, 158);
+            this.Controls.Add(this.checkBoxHookGlobalHotkeys);
             this.Controls.Add(this.btnInfo);
             this.Controls.Add(this.lblTrackPreview);
             this.Controls.Add(this.lblArtistPreview);
@@ -180,6 +193,7 @@ namespace MusicBeePlugin.Forms
             this.Shown += new System.EventHandler(this.SettingsForm_Shown);
             this.ResumeLayout(false);
             this.PerformLayout();
+
         }
 
         private System.Windows.Forms.Button btnInfo;
@@ -200,5 +214,7 @@ namespace MusicBeePlugin.Forms
         private System.Windows.Forms.ToolTip toolTip;
 
         #endregion
+
+        private System.Windows.Forms.CheckBox checkBoxHookGlobalHotkeys;
     }
 }
